@@ -8,9 +8,12 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import 'dotenv/config';
 import ffmpegPath from 'ffmpeg-static';
-import { kindergartenQA } from './QandA.js';
 import KuroshiroModule from 'kuroshiro';
 import KuromojiAnalyzer from 'kuroshiro-analyzer-kuromoji';
+
+// JSONファイルから直接読み込み
+const qaPath = path.resolve(process.cwd(), './QandA.json');
+const kindergartenQA = JSON.parse(fs.readFileSync(qaPath, 'utf8')).kindergartenQA;
 
 const Kuroshiro = KuroshiroModule.default;
 const kuro = new Kuroshiro();
@@ -91,7 +94,7 @@ function analyzeStage(msg, stage) {
 function systemPrompt() {
   return `ホザナ幼稚園の入園コンシェルジュです。園に関する質問に250文字程度で親切・丁寧に回答してください。
 
-以下のQ&A情報を必ず参考にしてください。しかし、単に情報をそのまま繰り返すのではなく、自然な対話を心がけて回答してください。
+以下のQandA情報を必ず参考にしてください。しかし、単に情報をそのまま繰り返すのではなく、自然な対話を心がけて回答してください。
 
 ※見学を希望される方には「このページ上部の見学予約ボタンからお申し込みください」と案内してください。
 ※電話番号は絶対に読み上げないでください。
@@ -124,9 +127,9 @@ app.post('/ai', async (req, res) => {
             role: 'system',
             content: `${systemPrompt()}
 
-以下はホザナ幼稚園の公式Q&Aです。これらの情報を元に、自然な会話を心がけて回答してください。同じ質問に対しても少し表現を変えるなど、バリエーションを持たせてください：
+以下はホザナ幼稚園の公式QandAです。これらの情報を元に、自然な会話を心がけて回答してください。同じ質問に対しても少し表現を変えるなど、バリエーションを持たせてください：
 
------ Q&A -----
+----- QandA -----
 ${qaContext}
 ----------------`
           },

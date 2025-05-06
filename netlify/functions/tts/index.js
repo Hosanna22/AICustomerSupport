@@ -1,5 +1,11 @@
 // netlify/functions/tts/index.js
 const fetch = require('node-fetch');
+const fs = require('fs');
+const path = require('path');
+
+// JSONファイルから直接読み込み
+const qaPath = path.resolve(__dirname, '../../QandA.json');
+const kindergartenQA = JSON.parse(fs.readFileSync(qaPath, 'utf8')).kindergartenQA;
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
