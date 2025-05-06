@@ -10,10 +10,7 @@ import 'dotenv/config';
 import ffmpegPath from 'ffmpeg-static';
 import KuroshiroModule from 'kuroshiro';
 import KuromojiAnalyzer from 'kuroshiro-analyzer-kuromoji';
-
-// JSONファイルから直接読み込み
-const qaPath = path.resolve(process.cwd(), './QandA.json');
-const kindergartenQA = JSON.parse(fs.readFileSync(qaPath, 'utf8')).kindergartenQA;
+import { kindergartenQA } from './QandA.json';
 
 const Kuroshiro = KuroshiroModule.default;
 const kuro = new Kuroshiro();
