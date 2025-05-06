@@ -150,12 +150,29 @@ ${qaContext}
 });
 
 /* ───── TTS (Google APIキー方式) ───── */
+// マークダウンをSSMLに変換
 function convertMarkdownToSSML(text) {
   return text
     .replace(/^#{1,6}\s*/gm, '')
     .replace(/\*\*(.+?)\*\*/g, '<emphasis level="moderate">$1</emphasis>')
     .replace(/\*(.+?)\*/g, '<emphasis level="reduced">$1</emphasis>')
     .replace(/__(.+?)__/g, '<emphasis level="strong">$1</emphasis>');
+}
+
+// 電話番号をSSML形式に変換
+function formatPhoneNumbers(text) {
+  return text.replace(
+    /(\d{2,4})[-\s]?(\d{2,4})[-\s]?(\d{2,4})/g, 
+    '<say-as interpret-as="telephone">$1-$2-$3</say-as>'
+  );
+}
+
+// URLや特殊文字を音声用に調整
+function optimizeTextForSpeech(text) {
+  return text
+    .replace(/https?:\/\/[^\s]+/g, 'ホームページのリンク')
+    .replace(/\n+/g, '<break time="500ms"/>')
+    .replace(/([。、．，！？])\s*/g, '$1<break time="300ms"/>');
 }
 
 async function synthesize(text) {
@@ -170,7 +187,11 @@ async function synthesize(text) {
     .replace(/園/g, 'えん')
     .replace(/大坪園子/g, 'おおつぼそのこ');
 
-  const ssmlText = `<speak>${convertMarkdownToSSML(fixed)}</speak>`;
+  let processedText = convertMarkdownToSSML(fixed);
+  processedText = formatPhoneNumbers(processedText);
+  processedText = optimizeTextForSpeech(processedText);
+  
+  const ssmlText = `<speak>${processedText}</speak>`;
 
   try {
     const { data } = await axios.post(
@@ -178,7 +199,12 @@ async function synthesize(text) {
       {
         input: { ssml: ssmlText },
         voice: { languageCode: 'ja-JP', name: 'ja-JP-Neural2-B' },
-        audioConfig: { audioEncoding: 'MP3', speakingRate: 1.15 }
+        audioConfig: { 
+          audioEncoding: 'MP3', 
+          speakingRate: 1.15,
+          pitch: 0.0,
+          volumeGainDb: 0.0
+        }
       }
     );
 
@@ -192,7 +218,11 @@ async function synthesize(text) {
         {
           input: { ssml: ssmlText },
           voice: { languageCode: 'ja-JP', name: 'ja-JP-Standard-B' },
-          audioConfig: { audioEncoding: 'MP3', speakingRate: 1.15 }
+          audioConfig: { 
+            audioEncoding: 'MP3', 
+            speakingRate: 1.15,
+            pitch: 0.0
+          }
         }
       );
       return `data:audio/mpeg;base64,${data.audioContent}`;
@@ -228,7 +258,12 @@ app.post('/tts', async (req, res) => {
         {
           input: { ssml: finalSSML },
           voice: { languageCode: 'ja-JP', name: 'ja-JP-Neural2-B' },
-          audioConfig: { audioEncoding: 'MP3', speakingRate: 1.15 }
+          audioConfig: { 
+            audioEncoding: 'MP3', 
+            speakingRate: 1.15,
+            pitch: 0.0,
+            volumeGainDb: 0.0
+          }
         }
       );
       audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
